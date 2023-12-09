@@ -1,41 +1,37 @@
 from datetime import date, datetime, timedelta
 
-weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-
 def get_birthdays_per_week(users):
     today = date.today()
-    birthdays_per_week = {day: [] for day in weekdays}
+    birthdays_per_week = {
+        "Monday": [],
+        "Tuesday": [],
+        "Wednesday": [],
+        "Thursday": [],
+        "Friday": [],
+        "Saturday": [],
+        "Sunday": [],
+        }
 
-    if not users:
-        return {}
-    all_birthdays_passed = all(today > user['birthday'].replace(year=today.year) for user in users)
-    if all_birthdays_passed:
-        return {}
-
+    
     for user in users:
-        user_name = user['name']
-        user_birthday = user['birthday'].replace(year=today.year)
-
-        def change_actual_year(user_birthday):
-            if today > user_birthday:
-                return user_birthday.replace(year=today.year + 1)
-            else:
-                 return user_birthday
         
+        user_birthday = user['birthday']
 
-        def output_birthday(user_name, user_birthday):
-            condition_met = today.year < user_birthday.year or (today.year == user_birthday.year and user_birthday.weekday() >= 5)
+        if user_birthday.year < today.year:
+            user_birthday = user_birthday.replace(year=today.year + 1)
             
+        if today <= user_birthday < today + timedelta(days=7):
+            day_of_week = user_birthday.strftime("%A")
 
-            while user_birthday.weekday() >= 5:
-                user_birthday += timedelta(days=1)
-
-            if condition_met:
-                day_name = weekdays[user_birthday.weekday()]
-                birthdays_per_week[day_name].append(user_name)
-
-        user_birthday = change_actual_year(user_birthday)
-        output_birthday(user_name, user_birthday)
-
+            if day_of_week in birthdays_per_week:
+                if day_of_week in ["Saturday", "Sunday"]:
+                    user_birthday += timedelta(days=1)
+                    day_of_week = "Monday"
+                birthdays_per_week[day_of_week].append(user["name"])
+    
+    birthdays_per_week = {
+        day_name: names for day_name, names in birthdays_per_week.items() if names
+    }
     return birthdays_per_week
+
 
